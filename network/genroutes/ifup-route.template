@@ -1,0 +1,10 @@
+#!/bin/bash
+NETWORK='__NETWORK__'
+GATEWAY='__GATEWAY__'
+
+# configura tabelas de roteamento com rota default por interface
+ip rule add from $NETWORK lookup rede__PREFIX__ 
+
+ip route add table rede__PREFIX__ to $GATEWAY dev $1
+ip route add table rede__PREFIX__ to default via $GATEWAY dev $1
+

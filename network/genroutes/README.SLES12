@@ -1,0 +1,2 @@
+Important: On SLES 12 the script mentioned in POST_UP will only be executed if it's written like this: "compat:suse:/etc/sysconfig/...".
+

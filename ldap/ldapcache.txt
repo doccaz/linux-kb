@@ -1,0 +1,118 @@
+How to check which sudoers groups/rules have been downloaded by SSSD to its cache:
+
+(install ldb-tools first)
+
+TF798402174:~ # ldbsearch -a -H tdb:///var/lib/sss/db/cache_LDAP.ldb -b cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+asq: Unable to register control with rootdse!
+# record 1
+dn: name=defaults,cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+cn: defaults
+dataExpireTimestamp: 1664561790
+entryUSN: 20200727152510Z
+name: defaults
+objectClass: sudoRule
+originalDN: cn=defaults,ou=aub,ou=sudoers,ou=acesso,o=BB,c=br
+sudoOption: !root_sudo
+sudoOption: always_set_home
+sudoOption: lecture=always
+sudoOption: lecture_file=/etc/sudo.lecture
+sudoOption: log_year
+sudoOption: passprompt="%p's password: " 
+sudoOption: timestamp_timeout=0
+distinguishedName: name=defaults,cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+
+# record 2
+dn: cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+cn: sudorules
+sudoLastFullRefreshTime: 1661969791
+distinguishedName: cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+
+# record 3
+dn: name=sudo.aub.aub.admin,cn=sudorules,cn=custom,cn=LDAP,cn=sysdb
+cn: sudo.aub.aub.admin
+dataExpireTimestamp: 1664561790
+entryUSN: 20220823155112Z
+name: sudo.aub.aub.admin
+objectClass: sudoRule
+originalDN: cn=sudo.aub.aub.admin,ou=aub,ou=sudoers,ou=acesso,o=BB,c=br
+sudoCommand: ALL
+sudoHost: ALL
+sudoOption: !authenticate
+sudoUser: %GAUBB1A@ldap
+sudoUser: %GAUB01A@ldap
+sudoUser: %gaubb1a@ldap
+sudoUser: %gaub01a@ldap
+distinguishedName: name=sudo.aub.aub.admin,cn=sudorules,cn=custom,cn=LDAP,cn=s
+ ysdb
+
+# returned 3 records
+# 3 entries
+# 0 referrals
+
+
+Here we can see the rule "%gaub01a@ldap", which means that if the user is in group "gaub01a", they can become root with "sudo".
+
+====================================
+
+If you want to filter all the sudo groups in one line, reading from the SSSD cache:
+
+# ldbsearch -a -H tdb:///var/lib/sss/db/cache_LDAP.PRODUCAO.ldb | grep 'sudoUser: %'| sort | uniq
+
+asq: Unable to register control with rootdse!
+sudoUser: %GLNX01A@ldap.producao
+sudoUser: %GPHP11A@ldap.producao
+sudoUser: %GPHP12A@ldap.producao
+sudoUser: %GSSO00A@ldap.producao
+sudoUser: %GSUN11A@ldap.producao
+sudoUser: %GSUN21A@ldap.producao
+sudoUser: %GSUN22A@ldap.producao
+sudoUser: %GTOM11A@ldap.producao
+sudoUser: %GTOM12A@ldap.producao
+sudoUser: %GTOM21A@ldap.producao
+sudoUser: %GWAS10A@ldap.producao
+sudoUser: %GWAS11A@ldap.producao
+sudoUser: %GWAS12A@ldap.producao
+sudoUser: %GWAS20A@ldap.producao
+sudoUser: %GWAS21A@ldap.producao
+sudoUser: %GWAS22A@ldap.producao
+sudoUser: %GWLS11A@ldap.producao
+sudoUser: %GWLS12A@ldap.producao
+sudoUser: %GWLS21A@ldap.producao
+sudoUser: %LNX20@ldap.producao
+sudoUser: %aca02102@ldap.producao
+sudoUser: %apm22@ldap.producao
+sudoUser: %gctm01a@ldap.producao
+sudoUser: %glnx01a@ldap.producao
+sudoUser: %gmtsudo@ldap.producao
+sudoUser: %gphp11a@ldap.producao
+sudoUser: %gphp12a@ldap.producao
+sudoUser: %gsso00a@ldap.producao
+sudoUser: %gsun11a@ldap.producao
+sudoUser: %gsun21a@ldap.producao
+sudoUser: %gsun22a@ldap.producao
+sudoUser: %gtom11a@ldap.producao
+sudoUser: %gtom12a@ldap.producao
+sudoUser: %gtom21a@ldap.producao
+sudoUser: %gwas10a@ldap.producao
+sudoUser: %gwas11a@ldap.producao
+sudoUser: %gwas12a@ldap.producao
+sudoUser: %gwas20a@ldap.producao
+sudoUser: %gwas21a@ldap.producao
+sudoUser: %gwas22a@ldap.producao
+sudoUser: %gwls11a@ldap.producao
+sudoUser: %gwls12a@ldap.producao
+sudoUser: %gwls21a@ldap.producao
+sudoUser: %idsrdk01@ldap.producao
+sudoUser: %ldp00002@ldap.producao
+sudoUser: %lnx0021@ldap.producao
+sudoUser: %lnx10@ldap.producao
+sudoUser: %lnx20@ldap.producao
+sudoUser: %lnx77@ldap.producao
+sudoUser: %mqm@ldap.producao
+sudoUser: %mqs002@ldap.producao
+sudoUser: %sghsgs01@ldap.producao
+sudoUser: %tbs002@ldap.producao
+
+
+**** just compare these groups with the ones a user has (try "<id username>") to see if the user indeed has sudo access.
+

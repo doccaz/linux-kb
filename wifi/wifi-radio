@@ -1,0 +1,26 @@
+#! /bin/sh
+#
+# enables/disables the wifi automatically, prioritizing the wired connection.
+# Just add this script to /etc/NetworkManager/dispatcher.d.
+#
+# Erico Mendonca <erico.mendonca@suse.com>
+# May 2022
+#
+. /etc/rc.status
+
+if [ "$1" == "eth0" ]; then
+	case "$2" in
+		down)
+       			# if the wired connection is unavailable, turns on the wifi radio
+			nmcli radio wifi on
+        	;;
+
+		up)
+       			# if the wired connection is available, turns off the wifi radio
+			nmcli radio wifi off
+        	;;
+    		*)
+        		exit 0
+        	;;
+	esac
+fi

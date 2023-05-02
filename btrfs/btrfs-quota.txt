@@ -1,0 +1,7 @@
+
+Remove quota from btrfs:
+
+btrfs quota destroy /srv/homedirs
+
+btrfs qgroup destroy 267 /srv/homedirs
+

@@ -1,0 +1,9 @@
+How to enable auditd for a file/directory:
+
+1. Comment the line "-a task,never" in /etc/audit/rules.d/audit.rules
+2. Create a rules file in /etc/audit/rules.d:
+-w <file to monitor> -k <log key> -p wa
+
+3. Do a restart (NOT a reload!) on auditd.service
+4. Check for modifications with ausearch -k <log key>
+

@@ -1,0 +1,39 @@
+Here is the whole process.
+It is all good until the end where the temporary drive can’t be removed. 
+
+ 
+
+#!/bin/bash
+#
+# Balance BTRFS when a low space condition exists
+#
+
+# Set variables for convenience
+tmnt=/tmp/tmpfs_mnt
+lfl="$tmnt/loop.blob"
+
+# block count
+ddcnt=1024
+
+# Set up the tmpfs and the blob to use for the temporary space addition
+mkdir $tmnt
+mount -t tmpfs -o size=2G tmpfs $tmnt
+dd if=/dev/zero of=$lfl bs=1M count=$ddcnt
+
+#
+# set devent to the device name of the loopback
+#
+devent=$(losetup --show -f $lfl)
+
+# Add the loopback blob device to the root partition
+# run the balance and then remove the device
+btrfs device add $devent /
+btrfs balance start --full-balance /
+btrfs device remove $devent /
+
+# Clean up the artifacts that were made
+losetup -d $devent
+rm $lfl
+umount $tmnt
+rmdir $tmnt
+

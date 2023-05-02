@@ -1,0 +1,4 @@
+#!/bin/bash
+
+salt-run manage.down removekeys=True
+

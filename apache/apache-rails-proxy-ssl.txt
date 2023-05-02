@@ -1,0 +1,27 @@
+# proxying through apache to a local rails instance, http & https
+
+# apache *.conf file
+<VirtualHost *:80>
+  ServerName psl.localhost
+  ServerAlias cms.psl.localhost
+  ServerAlias *.psl.localhost
+
+  ProxyPass / http://localhost:3000/
+  ProxyPassReverse / http://localhost:3000/
+</VirtualHost>
+
+<VirtualHost *:443>
+  ServerName psl.localhost
+  ServerAlias cms.psl.localhost
+  ServerAlias *.psl.localhost
+
+  SSLEngine on
+  SSLOptions +StrictRequire
+  SSLCertificateFile /home/adam/workspace/psl/cms/config/development/server.crt
+  SSLCertificateKeyFile /home/adam/workspace/psl/cms/config/development/server.key
+
+  SSLProxyEngine on                           # make sure apache knows SSL is okay to proxy
+  RequestHeader set X_FORWARDED_PROTO 'https' # make sure Rails knows it was an SSL request
+  ProxyPass / http://localhost:3000/          # NOTE: http not https
+  ProxyPassReverse / http://localhost:3000/   # NOTE: http not https
+</VirtualHost>

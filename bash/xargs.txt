@@ -1,0 +1,4 @@
+Executing 5 simultaneous instances of a script with variable parameters:
+
+ echo ac al am ap ba ce df es go ma mg ms mt pa pb pe pi pr rj rn ro rr rs sc se sp to zz | xargs -P5 -d ' ' -I"__UF__"  ./processa_bu_divergentes_csv.py -u __UF__ --pleito=407
+

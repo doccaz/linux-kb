@@ -1,0 +1,30 @@
+sadf -g -T -C -O showinfo,showtoc,oneday,skipempty,autoscale sa20210821 -- -A -b -n ALL > output.svg
+
+$ sadf -g -s 17:30 -e 18:30  /var/log/sysstat/sa20190413 -- -b
+
+
+
+$ sadf -d -s 17:30 -e 18:30  /var/log/sysstat/sa20190413 -- -b
+
+
+$ sadf sa.2019-09-19
+Invalid system activity file: sa.2019-09-19
+File created by sar/sadc from sysstat version 10.1.5
+Current sysstat version cannot read the format of this file (0x2171)
+Convert binary datafile to current format.
+
+$ sadf -c sa.2019-09-19 > sa.2019-09-19.updated
+file_magic: OK
+file_header: OK
+file_activity: A_CPU A_PCSW A_SWAP A_PAGE A_IO A_MEMORY A_HUGE A_KTABLES A_QUEUE A_SERIAL A_DISK A_NET_DEV A_NET_EDEV A_NET_NFS A_NET_NFSD A_NET_SOCK OK
+Statistics: ................................................................................................................................................
+File successfully converted to sysstat format version 11.6.1
+Display I/O and transfer rate statistics.
+
+$ sadf -d -s 10:30 -e 11:30  sa.2019-09-19.updated -- -b
+# hostname;interval;timestamp;tps;rtps;wtps;bread/s;bwrtn/s
+debian-buster;600;2019-09-12 10:40:01 UTC;75,02;1,39;73,63;32,71;6435,00
+debian-buster;600;2019-09-12 10:50:01 UTC;54,29;1,45;52,84;32,26;3655,54
+debian-buster;600;2019-09-12 11:00:01 UTC;169,58;1,58;167,99;39,00;74038,34
+debian-buster;600;2019-09-12 11:10:01 UTC;3479,30;3199,42;279,88;119880,86;109408,26
+debian-buster;600;2019-09-12 11:20:01 UTC;80,49;16,19;64,30;159,57;6393,92

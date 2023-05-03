@@ -1,0 +1,20 @@
+#!/bin/bash
+PATH=/usr/bin
+
+XUSERS=($(who|egrep "\(:[0-9](\.[0-9])*\)"|awk '{print $1$5}'|sort -u))
+
+for XUSER in $XUSERS; do
+    	NAME=(${XUSER/(/ })
+    	DISPLAY=${NAME[1]/)/}
+	USERNAME=$(echo $XUSER | cut -d\( -f1)
+    	pgrep "gnome-session" -u "$USERNAME" | while read -r line; do
+        	exp=$(cat /proc/$line/environ | grep -z "^DBUS_SESSION_BUS_ADDRESS=")
+        	DBUSADDR=$(echo $exp | cut -d= -f2-)
+
+    	sudo -u ${NAME[0]} DISPLAY=${DISPLAY} \
+                       DBUS_SESSION_BUS_ADDRESS=${DBUSADDR} \
+                       PATH=${PATH} \
+                       notify-send "$@"
+    	done
+done
+

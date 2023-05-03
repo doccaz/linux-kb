@@ -1,0 +1,11 @@
+%packager %(echo "$USER")
+%_topdir %(echo "$HOME")/rpmbuild
+%_rpmtopdir %{_topdir}
+%_builddir %{_rpmtopdir}/BUILD
+%_rpmdir %{_rpmtopdir}/RPMS
+%_sourcedir %{_rpmtopdir}/SOURCES
+%_specdir %{_rpmtopdir}/SPECS
+%_srcrpmdir %{_rpmtopdir}/SRPMS
+%_tmppath %(echo "$HOME")/tmp
+%_buildroot %{_tmppath}/%{name}-root
+

@@ -1,0 +1,7 @@
+# finds all installed kernels and sorts them by version
+
+# rpm -qa --queryformat '%{NAME}-%{VERSION},[%{PROVIDES} ]\n' | grep multiversion | cut -d, -f1 | egrep 'kernel-default-[0-9]+\.[0-9]*' | sort
+kernel-default-6.1.10
+kernel-default-6.1.12
+
+

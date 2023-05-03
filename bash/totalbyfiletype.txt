@@ -1,0 +1,4 @@
+Get total disk usage in MB for a specific type of file:
+
+find -name '*.jpg' -type f -exec du -bc {} + | grep total$ | cut -f1 | awk '{ total += $1 }; END { print total/1024/1024 }'
+

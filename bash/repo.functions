@@ -1,0 +1,14 @@
+function findrepo { 
+	NAME=`zypper se -si -x $1  | tail -1 | awk -F\| '{print $NF}'` 
+	PROVIDER=`zypper lr -d | grep "$NAME" | awk -F\| '{print $(NF - 1)}'`
+	echo "package $1 is provided by $PROVIDER"
+	unset NAME PROVIDER
+}
+
+function findrepo2 { 
+	NAME=`zypper se -si --match-substrings $1  | tail -1 | awk -F\| '{print $NF}'` 
+	PROVIDER=`zypper lr -d | grep "$NAME" | awk -F\| '{print $(NF - 1)}'`
+	echo "package $1 is provided by $PROVIDER"
+	unset NAME PROVIDER
+}
+

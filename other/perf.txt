@@ -1,0 +1,9 @@
+Record some 10 seconds of backtraces on all your CPUs:
+
+sudo perf record -g -a sleep 10
+Analyse your recording:
+
+sudo perf report
+(Navigate the call graph with ←, →, ↑, ↓ and Enter.)
+
+

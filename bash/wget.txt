@@ -1,0 +1,5 @@
+Downloading files with a regex:
+
+wget -m -nH -r -l1 -A "m*" -A "n*" -A "o*"  -e robots=off http://download.opensuse.org/update/leap/15.3/sle/s390x/
+
+

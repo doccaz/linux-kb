@@ -1,0 +1,17 @@
+To convert a list of dicts to a single dict and remove duplicates, a possible solution using names as the new keys:
+
+new_dict = {}
+for item in data:
+   name = item['name']
+   new_dict[name] = item
+With python 3.x you can also use dict comprehensions for the same approach in a more nice way:
+
+new_dict = {item['name']:item for item in data}
+As suggested in a comment by Paul McGuire, if you don't want the name in the inner dict, you can do:
+
+new_dict = {}
+for item in data:
+   name = item.pop('name')
+   new_dict[name] = item
+
+

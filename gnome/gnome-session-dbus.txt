@@ -1,0 +1,127 @@
+Skip to the content
+sleeplessbeastie's notes
+Categories
+DAILYOPS
+How to identify a GNOME application that acquired an inhibitor lock
+Post author
+By milosz
+Post date
+January 31, 2022
+Identify a GNOME application that acquired an inhibitor lock and blocks power-off or reboot operation.
+
+The issue
+Try to power-off or reboot the machine.
+
+$ sudo reboot
+Operation inhibited by "milosz" (PID 165825 "gnome-session-b", user milosz), reason is "user session inhibited".
+Please retry operation after closing inhibitors and logging out other users.
+Alternatively, ignore inhibitors and users with 'systemctl reboot -i'.
+There is an inhibition lock that is blocking the operation. It can be anything as the lock can be acquired by an application to perform an upgrade, ask user a question or simply play multimedia.
+
+Ignore the inhibitors
+The easiest solution is to simply ignore inhibitors.
+
+$ sudo systemctl reboot -i
+You can stop here. No questions asked.
+
+Identify an application that acquired an inhibitor lock
+Use systemd to lists all active inhibition locks.
+
+$ systemd-inhibit --list
+WHO                          UID  USER   PID    COMM            WHAT                                                     WHY                                                       MODE
+ModemManager                 0    root   1322   ModemManager    sleep                                                    ModemManager needs to reset devices                       delay
+NetworkManager               0    root   1207   NetworkManager  sleep                                                    NetworkManager needs to turn off networks                 delay
+UPower                       0    root   1941   upowerd         sleep                                                    Pause device polling                                      delay
+Unattended Upgrades Shutdown 0    root   1329   unattended-upgr shutdown                                                 Stop ongoing upgrades or perform upgrades before shutdown delay
+GNOME Shell                  1000 milosz 165844 gnome-shell     sleep                                                    GNOME needs to lock the screen                            delay
+milosz                       1000 milosz 165990 gsd-media-keys  handle-power-key:handle-suspend-key:handle-hibernate-key GNOME handling keypresses                                 block
+milosz                       1000 milosz 165825 gnome-session-b shutdown                                                 user session inhibited                                    block
+milosz                       1000 milosz 165990 gsd-media-keys  sleep                                                    GNOME handling keypresses                                 delay
+milosz                       1000 milosz 165991 gsd-power       sleep                                                    GNOME needs to lock the screen                            delay
+
+9 inhibitors listed.
+In this specific case, it will not provide details required to identify the culprit, so let’s send a message to a D-Bus message bus.
+
+Display a list of all the inhibitors that are currently known to the session manager.
+
+$ dbus-send --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.GetInhibitors
+method return time=1642024889.110099 sender=:1.41 -> destination=:1.355 serial=354 reply_serial=2
+   array [
+      object path "/org/gnome/SessionManager/Inhibitor2"
+   ]
+Display an application ID associated with this particular inhibitor.
+
+$ dbus-send --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager/Inhibitor2 org.gnome.SessionManager.Inhibitor.GetAppId
+method return time=1642024906.006541 sender=:1.41 -> destination=:1.356 serial=355 reply_serial=2
+   string "org.gnome.gedit"
+Display the reason associated with this particular inhibitor.
+
+$ dbus-send --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager/Inhibitor2 org.gnome.SessionManager.Inhibitor.GetReason
+method return time=1642025519.024147 sender=:1.41 -> destination=:1.375 serial=367 reply_serial=2
+   string "There are unsaved documents"
+The culprit is identified as the text editor for the GNOME Desktop (gedit) acquired an inhibitor lock as there are unsaved documents.
+
+Close X11 application to release an inhibitor lock
+Display the X identifier associated with the application that acquired an inhibitor lock.
+
+$ dbus-send --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager/Inhibitor2 org.gnome.SessionManager.Inhibitor.GetToplevelXid
+method return time=1642025699.728285 sender=:1.41 -> destination=:1.380 serial=372 reply_serial=2
+   uint32 44040440
+Display an active X11 display name.
+
+$ dbus-send --system --print-reply --dest=org.gnome.DisplayManager /org/gnome/DisplayManager/Displays org.freedesktop.DBus.Introspectable.Introspect | grep node\ name
+  <node name="93867397657696"/>
+$ dbus-send --system --print-reply --dest=org.gnome.DisplayManager /org/gnome/DisplayManager/Displays/93867397657696 org.gnome.DisplayManager.Display.GetX11DisplayName
+method return time=1642027597.153035 sender=:1.19 -> destination=:1.883 serial=350 reply_serial=2
+   string ":3"
+Kill the application that acquired an inhibitor lock.
+
+$ DISPLAY=:3 xkill -id 44040440
+xkill:  killing creator of resource 0x2a000f8
+Use systemd to lists all active inhibition locks.
+
+$ systemd-inhibit --list 
+WHO                          UID  USER   PID    COMM            WHAT                                                     WHY                                                       MODE
+ModemManager                 0    root   1322   ModemManager    sleep                                                    ModemManager needs to reset devices                       delay
+NetworkManager               0    root   1207   NetworkManager  sleep                                                    NetworkManager needs to turn off networks                 delay
+UPower                       0    root   1941   upowerd         sleep                                                    Pause device polling                                      delay
+Unattended Upgrades Shutdown 0    root   1329   unattended-upgr shutdown                                                 Stop ongoing upgrades or perform upgrades before shutdown delay
+GNOME Shell                  1000 milosz 165844 gnome-shell     sleep                                                    GNOME needs to lock the screen                            delay
+milosz                       1000 milosz 165990 gsd-media-keys  handle-power-key:handle-suspend-key:handle-hibernate-key GNOME handling keypresses                                 block
+milosz                       1000 milosz 165990 gsd-media-keys  sleep                                                    GNOME handling keypresses                                 delay
+milosz                       1000 milosz 165991 gsd-power       sleep                                                    GNOME needs to lock the screen                            delay
+
+8 inhibitors listed.
+Display a list of all the inhibitors that are currently known to the session manager.
+
+$ dbus-send --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.GetInhibitors
+method return time=1642027705.692889 sender=:1.41 -> destination=:1.385 serial=381 reply_serial=2
+   array [
+   ]
+Perform the power-off or reboot the machine.
+
+$ sudo reboot
+Connection to 172.16.0.200 closed by remote host.
+Connection to 172.16.0.200 closed.
+It was a little adventure!
+
+Additional notes
+GNOME Session Documentation
+
+Use gdbus a tool for working with D-Bus objects for initial inspection, as it is easier due to tab completion.
+
+$ gdbus call --system --dest org.gnome.DisplayManager --object-path /org/gnome/DisplayManager/Displays/93867397657696 --method org.gnome.DisplayManager.Display.GetX11DisplayName
+(':3',)
+Tags
+Impish Indri, Ubuntu
+←
+How to execute multiple Ansible tasks once per group
+→
+How to define idle delay on Ubuntu desktop
+Friends
+About
+© 2022 sleeplessbeastie's notes
+
+
+To the top ↑
+

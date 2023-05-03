@@ -1,0 +1,103 @@
+Handling exceptions in Python a cleaner way, using Decorators
+Handling exceptions in python can get in some cases repetitive and ugly, we can solve that using decorators.
+Shivam Batra
+Shivam Batra
+Follow
+May 17 · 3 min read
+
+
+
+Image for post
+Functions in Python
+Functions in Python are first class objects, which means they can be assigned to a variable, passed as an argument, and return from another function and store that in any data structure.
+def example_function():
+    print("Example Function called")
+some_variable = example_function
+some_variable()
+As you can see we have assigned example_function to some_variable which makes some_variable callable. The output for the following will be:
+Example Function called
+Decorators
+The first class object property of function helps us to use the concept of Decorators in Python. Decorators are functions which take as argument another function as an object, which enables us to put our logic either at the start and end of the execution of the argument function.
+def decorator_example(func):
+    print("Decorator called")
+
+    def inner_function(*args, **kwargs):
+            print("Calling the function")
+            func(*args, **kwargs)
+            print("Function's execution is over")
+    return inner_function
+@decorator_example
+def some_function():
+    print("Executing the function")
+    # Function logic goes here
+As you can see we are using the decorator by using @decorator_example on top of the function which needs to be passed as the argument to the Decorator function. In this case, some_function will be passed as an argument to decorator_example. The output of the above snippet will be:
+Decorator called
+Calling the function
+Executing the function
+Function's execution is over
+Error Handling Using Decorators
+You can use Decorators for quite a lot of purposes like logging, validations, or any other common logic which needs to be put in multiple functions. One of the many areas where Decorators can be used is the exception handling.
+Let’s take an example of such functions, which require handling of the same exceptions.
+We will take a simple example of calculating areas. And we will be for now printing the errors if an unsupported type is passed as the argument which in this case will be a string.
+Errors should never pass silently.
+Unless explicitly silenced.
+The normal way to do this would be to have all such functions in a try-catch, somewhat like this,
+def area_square(length):
+    try:
+        print(length**2)
+    except TypeError:
+        print("area_square only takes numbers as the argument")
+
+
+def area_circle(radius):
+    try:
+        print(3.142 * radius**2)
+    except TypeError:
+        print("area_circle only takes numbers as the argument")
+
+
+def area_rectangle(length, breadth):
+    try:
+        print(length * breadth)
+    except TypeError:
+        print("area_rectangle only takes numbers as the argument")
+Now, this looks repetitive which we should avoid to the extent we can. So we can use the magic of Decorators here and observe that the code looks a lot cleaner this way. And a clean code goes a long way.
+def exception_handler(func):
+    def inner_function(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except TypeError:
+            print(f"{func.__name__} only takes numbers as the argument")
+    return inner_function
+
+
+@exception_handler
+def area_square(length):
+    print(length * length)
+
+
+@exception_handler
+def area_circle(radius):
+    print(3.14 * radius * radius)
+
+
+@exception_handler
+def area_rectangle(length, breadth):
+    print(length * breadth)
+
+
+area_square(2)
+area_circle(2)
+area_rectangle(2, 4)
+area_square("some_str")
+area_circle("some_other_str")
+area_rectangle("some_other_rectangle")
+The output of the following will be:
+4
+12.568
+8
+area_square only takes numbers as the argument
+area_circle only takes numbers as the argument
+area_rectangle only takes numbers as the argument
+We can extend the capability of raising errors in the exception_handler by having custom exceptions and further expand its usages. This was one of the examples which enables us to handle the exceptions cleanly.
+

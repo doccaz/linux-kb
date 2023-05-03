@@ -1,0 +1,10 @@
+To see all transitions and network availability issues:
+
+grep -a "state is now" /var/log/NetworkManager
+
+Para ver todas as revalidações de lease:
+
+grep -a "option ip_address" /var/log/NetworkManager
+
+
+

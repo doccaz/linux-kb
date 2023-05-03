@@ -1,0 +1,25 @@
+if you set kernel.softlockup_panic=1 and kdump is setup, a soft lockup will cause a crash dump 
+
+on concord.suse.cloud: 
+sync-case
+
+crashPrep.py -e <kernel version>
+
+crash vmlinux-<version>.gz vmlinux-<version>.debug vmcore
+
+
+commands:
+dmesg
+bt
+cpu
+ps | grep RU   --- running processes
+runqueues --- running queues
+bt <pid> -- stack trace for a pid
+foreach bt --- runs a backtrace for all pids
+ps -g --- group tasks by cpu
+
+
+memory addresses starting with fffffff = userspace processes
+kworker tasks stopped at __schedule are idle waiting for processes
+
+

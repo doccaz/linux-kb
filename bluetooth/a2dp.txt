@@ -1,0 +1,7 @@
+Disable auto switching headset to HSP/HFP
+When using a bluetooth headset that supports multiple profiles, some applications switch to HSP/HFP profile automatically. If this behaviour is undesired you can disable this by appending the auto_switch=false parameter to the bluetooth-policy module:
+
+/etc/pulse/default.pa
+load-module module-bluetooth-policy auto_switch=false
+
+

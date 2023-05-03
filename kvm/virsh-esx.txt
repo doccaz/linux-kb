@@ -1,0 +1,101 @@
+Para conectar num ESX via virsh:
+
+virsh -c 'esx://root@10.189.27.178?no_verify=1'
+
+references: 
+https://libvirt.org/drvesx.html 
+https://computingforgeeks.com/virsh-commands-cheatsheet/
+
+To list the VMs:
+
+virsh # list
+ Id   Nome                   Estado
+-----------------------------------------
+ 54   FWB1ST007993           executando
+ 55   SUSE-ST798900001       executando
+ 56   SUSE-ST799703001 (1)   executando
+ 
+To reboot a VM:
+
+virsh # reboot --domain SUSE-ST798900001
+
+
+To do a physical reset on the VM:
+
+virsh # reset --domain SUSE-ST798900001
+
+
+To turn on a VM:
+
+virsh # start --domain SUSE-ST798900001
+
+
+To shutdown a VM:
+
+virsh # shutdown --domain SUSE-ST798900001
+
+To forcefully turn off a VM:
+
+virsh # destroy --domain SUSE-ST798900001
+
+
+To connect an ISO (does not work with ESX!):
+
+virsh # attach-disk SUSE-ST798900001 '[HYBLAB799703] servidor-ag-2018-x86_64-202111111044.iso' sda --type cdrom --mode readonly 
+erro:Falha ao reconectar o disco
+erro:esta função não é suportada pelo driver de conexão: virDomainAttachDevice
+
+
+To disconnect an ISO (does not work with ESX!):
+
+virsh # detach-disk SUSE-ST798900001 --target sda
+erro:Falha ao desconectar o disco
+erro:esta função não é suportada pelo driver de conexão: virDomainDetachDevice
+
+To change a media (does not work with ESX!):
+
+virsh # change-media --domain SUSE-ST798900001 --eject --path sda
+erro:Falha ao concluir ação eject na mídia
+erro:esta função não é suportada pelo driver de conexão: virDomainUpdateDeviceFlags
+
+virsh # change-media --domain SUSE-ST798900001 --insert --path sda plpbt.iso
+erro:Falha ao concluir ação eject na mídia
+erro:esta função não é suportada pelo driver de conexão: virDomainUpdateDeviceFlags
+
+
+
+To list the disks attached to a VM:
+
+virsh # domblklist --domain SUSE-ST798900001  
+ Alvo   Fonte
+----------------------------------------------------------------------------------
+ sda    [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000003.vmdk
+ sda    [HYBLAB799703] servidor-ag-2018-x86_64-202111111044.iso
+
+ 
+
+To list the pools:
+
+virsh # pool-list 
+ Nome           Estado   Auto-iniciar
+---------------------------------------
+ HYBLAB799703   ativo    sim
+
+ 
+To list the files in a pool:
+
+virsh # vol-list --pool HYBLAB799703                         
+ Nome                                                        Caminho
+---------------------------------------------------------------------------------------------------------------------------------------
+ FTDv/FTDv.vmdk                                              [HYBLAB799703] FTDv/FTDv.vmdk
+ servidor-ag-2018-x86_64-202106141749.iso                    [HYBLAB799703] servidor-ag-2018-x86_64-202106141749.iso
+ servidor-ag-2018-x86_64-202106141749_original.iso           [HYBLAB799703] servidor-ag-2018-x86_64-202106141749_original.iso
+ servidor-ag-2018-x86_64-202111111044.iso                    [HYBLAB799703] servidor-ag-2018-x86_64-202111111044.iso
+ ST799703001/ST799703001-000001.vmdk                         [HYBLAB799703] ST799703001/ST799703001-000001.vmdk
+ ST799703001/ST799703001-000002.vmdk                         [HYBLAB799703] ST799703001/ST799703001-000002.vmdk
+ ST799703001/ST799703001.vmdk                                [HYBLAB799703] ST799703001/ST799703001.vmdk
+ SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000001.vmdk   [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000001.vmdk
+ SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000002.vmdk   [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000002.vmdk
+ SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000003.vmdk   [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000003.vmdk
+ SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000005.vmdk   [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE-000005.vmdk
+ SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE.vmdk          [HYBLAB799703] SUSE-ST798900001_TESTE/SUSE-ST798900001_TESTE.vmdk

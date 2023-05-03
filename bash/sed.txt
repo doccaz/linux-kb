@@ -1,0 +1,6 @@
+
+Remove only the first ocurrance of a duplicate line (if it exists):
+
+ if [ $(grep -c 'dnssec-validation no' /etc/named.conf) -gt 1 ]; then sed -i '0,/dnssec-validation no/{//d}' /etc/named.conf; echo "duplicate removed"; else echo "no duplicates removed"; fi
+
+

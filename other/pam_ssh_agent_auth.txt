@@ -1,0 +1,24 @@
+1. created a local test user and logged in
+2. ssh-keygen (create a keypair, accept the defaults)
+3. added this line to the top of /etc/pam.d/sudo:
+auth     sufficient     pam_ssh_agent_auth.so file=/etc/security/authorized_keys
+4.  cat /home/<test user>/.ssh/*pub > /etc/security/authorized_keys
+5. added this to /home/<test user>/.bash_profile:
+eval $(ssh-agent)
+ssh-add
+6. added this to /home/<test user>/.bash_logout
+eval $(ssh-agent -k)
+7. logged in as the test user
+8. sudo su -
+and you should become root without resorting to %wheel and sudoers.
+From the system log:
+Sep 08 19:30:29 suselab-erico.localdomain sudo[8680]: pam_ssh_agent_auth: Found matching RSA key: d9:30:35:78:02:02:61:2e:69:6b:be:6e:14:4a:a8:e8
+Sep 08 19:30:29 suselab-erico.localdomain sudo[8680]: pam_ssh_agent_auth: Authenticated (agent): `teste' as `root' using /etc/security/authorized_keys
+Sep 08 19:30:29 suselab-erico.localdomain sudo[8680]:    teste : TTY=pts/5 ; PWD=/home/teste ; USER=root ; COMMAND=/usr/bin/su -
+Sep 08 19:30:29 suselab-erico.localdomain sudo[8680]: pam_unix(sudo:session): session opened for user root by erico(uid=1001)
+
+
+
+
+https://build.opensuse.org/package/show/home:emendonca:pam/pam_ssh_agent_auth
+

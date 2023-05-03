@@ -1,0 +1,52 @@
+enable tracefs (if not already mounted):
+mount -t tracefs none /sys/kernel/debug/tracing
+
+add a trace filter:
+cd /sys/kernel/debug/tracing/
+echo my_function_name > set_ftrace_filter
+
+to remove a trace filter:
+echo my_function_name >  set_ftrace_notrace
+
+to add a stack trace display: 
+echo 1 > options/func_stack_trace
+
+verify a filter is enabled:
+cat set_ftrace_filter
+
+add a filter to the function grapher to see a call tree:
+echo my_function_name > set_graph_function
+
+to remove a filter from the function grapher:
+echo my_function_name >  set_ftrace_notrace
+
+enable the function grapher:
+echo function_graph > current_tracer
+
+monitor a specific PID:
+echo <PID> > set_ftrace_pid
+
+see all available functions to trace:
+cat available_filter_functions
+
+
+to enable tracing over forked PIDs:
+echo function-fork > trace_options
+
+to disable tracing over forked PIDs:
+echo nofunction-fork > trace_options
+
+to trace a specific module:
+echo ':mod:iwlwifi' > set_ftrace_filter
+
+start the trace:
+echo function > current_tracer
+
+see the trace:
+cat trace
+
+stop the trace:
+echo nop > current_tracer
+
+
+reference: https://www.kernel.org/doc/Documentation/trace/ftrace.txt

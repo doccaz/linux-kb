@@ -1,0 +1,49 @@
+
+
+
+
+Here’s the command for tpm2-tools 4.0
+List PCRs
+
+tpm2_pcrread
+
+Add key to TPM
+
+tpm2_createpolicy --policy-pcr -l sha1:0,7 -L policy.digest
+tpm2_createprimary -C e -g sha1 -G rsa -c primary.context
+tpm2_create -g sha256 -u obj.pub -r obj.priv -C primary.context -L policy.digest -a "noda|adminwithpolicy|fixedparent|fixedtpm" -i /root/secret.bin
+tpm2_load -C primary.context -u obj.pub -r obj.priv -c load.context
+tpm2_evictcontrol -C o -c load.context 0x81000000
+rm load.context obj.priv obj.pub policy.digest primary.context
+
+Check persistent object in TPM
+
+tpm2_getcap handles-persistent
+tpm2_readpublic -c 0x81000000
+
+Unseal
+
+tpm2_unseal -c 0x81000000 -p pcr:sha1:0,7 -o /crypto_keyfile.bin
+
+Remove key from TPM
+
+tpm2_evictcontrol -C o -c 0x81000000
+
+
+
+
+
+add LUKS key to initrd (without TPM):
+
+1) create a .conf file in /etc/dracut.conf.d with the contents:
+install_items+=" /my/file.key "
+(important: with the added spaces)
+
+
+2) to use it on the kernel command line, you'd write:
+rd.luks.key=/my/file.key:/
+ 
+ (where :/ indicates where the file is located inside the initrd)
+ 
+ verify the initrd contents with lsinitrd.
+ 

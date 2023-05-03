@@ -1,0 +1,55 @@
+￼
+wget https://www.python.org/ftp/python/3.8.3/Python-3.8.3.tar.xz  
+ 
+tar xvJf Python-3.8.3.tar.xz
+ 
+cd Python-3.8.3/
+ 
+./configure && make
+￼
+sudo make install
+￼
+sudo ln -s /usr/local/lib64/python3.8/lib-dynload/ /usr/local/lib/python3.8/lib-dynload
+
+sudo pip install --upgrade virtualenv pip
+ 
+virtualenv --python=/usr/local/bin/python3.8 testepython38
+ 
+source testepython38/bin/activate
+ 
+(testepython38) erico@suselab-erico:~/Projetos> python  
+Could not find platform dependent libraries <exec_prefix>
+Consider setting $PYTHONHOME to <prefix>[:<exec_prefix>]
+Python 3.8.3 (default, Jun 24 2020, 13:46:56)  
+[GCC 7.5.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+
+ 
+
+pra desativar, roda "deactivate"
+
+
+
+
+pip 1.4 added support for installing and building wheel package.
+
+"Wheel" is a built, archive format that can greatly speed installation compared to building and installing from source archives.
+
+procedure
+Install/upgrade to pip 1.4. (one time only)
+
+Install wheel in both dev, production server. (one time only)
+
+pip install wheel
+Build wheel package in dev server:
+
+pip wheel --wheel-dir=/local/wheels -r requirements.txt
+Transfer /local/wheels packages to production server.
+
+Install packages in production server:
+
+pip install --use-wheel --no-index --find-links=/local/wheels -r requirements.txt
+Reference
+See pip documentation about building and installing wheels for more detail.
+

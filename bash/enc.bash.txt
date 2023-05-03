@@ -1,0 +1,26 @@
+#!/bin/bash
+
+uu() {
+SCRIPT=$1
+
+if [ -z $1 ]; then
+	echo "Usage: $0 <script name to convert>"
+	return 1
+fi
+
+if [ ! -f $1 ]; then
+	echo "File $1 does not exist."
+	return 1
+fi
+
+STRING=$(bzip2 -v9c $1 | base64)
+
+echo "------------[ cut here ]------------"
+echo "base64 -d <<< '
+${STRING}
+' | bzip2 -dc > $1"
+[[ "$1" =~ [a-z0-0]+(\.sh|\.py|\.bin) ]] && echo "chmod +x $1"
+echo
+echo "------------[ cut here ]------------"
+
+}

@@ -1,0 +1,113 @@
+#! /bin/sh
+# Author: http://en.opensuse.org/User:Mvidner
+
+#set -o errexit
+
+USAGE=false
+IGNORE_GPG=false
+IGNORE_FILES=cat
+while getopts fgh FLAG; do
+    case $FLAG in
+	f) IGNORE_FILES=ignore_files;;
+	g) IGNORE_GPG=true;;
+	h) USAGE=true;;
+	*) USAGE=true; RC=1;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+if $USAGE; then
+    cat <<EOF
+Checks consistency of RPM XML repodata
+Usage: verify-repodata [-g] [-f] [BASEDIR]
+  BASEDIR: a directory to check, containing the repodata directory
+  -g ignores errors from gpg (missing key?)
+  -f ignores files mentioned in metadata but missing on disk
+EOF
+    exit $RC
+fi
+
+BASEDIR="${1-.}"
+cd "$BASEDIR"
+DIR=./repodata
+
+gpg --verbose --verify "$DIR"/repomd.xml.asc || $IGNORE_GPG
+
+# auxiliary file is inlined to keep all this in a single file
+STYLESHEET=`mktemp -t verify-repodata-xsl-XXXXXX` || exit 1
+trap "rm $STYLESHEET" EXIT INT TERM
+cat <<EOF > $STYLESHEET
+<?xml version="1.0" encoding="UTF-8"?><!--*- xml -*-->
+<!-- convert XML RPM metadata to sha1sum format -->
+<xsl:stylesheet
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:r="http://linux.duke.edu/metadata/repo"
+  xmlns:p="http://novell.com/package/metadata/suse/patches"
+  version='1.0'>
+
+  <!-- duh, different namespaces ... -->
+
+  <xsl:output method="text"/>
+  <!-- we assume sha1 -->
+  <xsl:template match="*[local-name()='checksum' and @type='sha256']">
+    <xsl:value-of select="."/>
+    <xsl:text>  </xsl:text>
+    <xsl:value-of select="../*[local-name()='location']/@href"/>
+    <xsl:text>&#10;</xsl:text>      
+  </xsl:template>
+
+  <!-- disable copying of text and attrs in normal mode-->
+  <xsl:template match="text()|@*"/>
+</xsl:stylesheet>
+EOF
+
+# filter out nonexistent files from a sha1sum list
+ignore_files () {
+    while read SUM FILE; do
+	if [ -f $FILE ]; then
+	    echo "$SUM  $FILE"
+	else
+	    echo >&2 "$FILE: MISSING, IGNORED"
+	fi
+    done
+}
+
+log() {
+	DATE=$(date +%c)
+	echo "[$DATE] $1" | tee -a /var/log/verifyrepos.log
+}
+
+repomd_verify () {
+    test -f $1 || return
+    case $1 in
+	*.gz) CAT=zcat;;
+	*)    CAT=cat;;
+    esac
+    declare -a CHECKSUMS
+    CHECKSUMS=($( $CAT $1 | xsltproc $STYLESHEET - | $IGNORE_FILES ))
+    log "Verify start: $1, total entries: ${#CHECKSUMS[@]}"
+
+    for (( i=0; i < ${#CHECKSUMS[@]}; i=i+2 )); do
+	CHECKSUM=${CHECKSUMS[$i]}
+	FILE=${CHECKSUMS[$i + 1]}
+	if [ $(echo $FILE | grep -c \/) -eq 0 ]; then
+		continue
+	fi
+	log "Processing checksum: ${i} of ${#CHECKSUMS[@]}"
+	echo "$CHECKSUM  $FILE" | sha256sum -c - 
+	if [ ! $? -eq 0 ]; then
+		log "Checksum error for $FILE (should be $CHECKSUM)"
+	else
+		log "Checksum for $FILE: OK"
+	fi
+     done
+}
+
+if [ ! -d $DIR ]; then
+    log "Expecting $DIR in current directory" >&2
+    exit 1
+fi
+repomd_verify "$DIR"/repomd.xml
+#repomd_verify "$DIR"/*patches.xml
+repomd_verify "$DIR"/*primary.xml.gz
+log "ALL OK"

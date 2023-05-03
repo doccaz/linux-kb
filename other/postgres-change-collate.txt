@@ -1,0 +1,3 @@
+postgres=# update pg_database set datcollate='en_US.UTF-8', datctype='en_US.UTF-8' where datname='susemanager';
+UPDATE 1
+

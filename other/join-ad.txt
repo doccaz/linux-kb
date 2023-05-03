@@ -1,0 +1,183 @@
+
+Antes de começar
+==================
+
+1. O hostname da máquina tem que estar definido como vai ser registrado no AD. Caso não esteja, defina o hostname com:
+
+# hostnamectl set-hostname <novo hostname>
+
+Lembrando que o AD não aceita registros duplicados!
+
+
+2. instalar os pacotes necessários
+
+# zypper in yast2-auth-client sssd samba-client krb5-client
+
+
+
+
+Registro da máquina no domínio via YaST
+========================================
+
+
+Método interativo: 
+
+Executar "yast2 auth-client".
+
+Marcar "Allow Domain User Logon"
+Marcar "Create Home Directory"
+Marcar "Users" e "Groups" para "Enable domain data source"
+
+Escolher a opção "Join/Add Domain"
+
+Preencher o nome do domínio
+
+Escolher "Microsoft Active Directory" tanto para identity data quanto para authentication
+
+Marcar "Enable the domain" 
+
+Escolher "OK"
+
+Escolher "Cache credentials for offline use" (para habilitar o cache de credenciais)
+
+Desmarcar "Treat user and group names as case sensitive".
+
+Desmarcar "Read all entities from backend database" (evita baixar toda a base de usuários remota).
+
+
+Escolher "OK"
+
+
+
+
+
+Método automatizado via scripts
+===============================
+
+1. Criar um arquivo smb.conf temporário (apenas para o join)
+
+
+[global]
+    security = ads
+    realm = <REALM>
+    workgroup = <DOMINIO>
+    log file = /var/log/samba/%m.log
+    kerberos method = secrets and keytab
+    client signing = yes
+    client use spnego = yes
+
+    
+O "realm" é o domínio TCP (por exemplo, "BANCO.COM.BR"). O "workgroup" seria o domínio simples (por exemplo, "BANCO").
+
+2. Remover os tickets do Kerberos, caso existam
+
+# rm /etc/krb5.keytab
+
+
+3. Configurar o SSSD
+
+Criar o arquivo de configuração do SSSD em /etc/sssd/sssd.conf:
+
+Substituir "<REALM>" pelo dominio AD a ser usado.
+
+
+============================
+[sssd] 
+config_file_version = 2 
+services = pam, nss
+domains = <REALM> 
+timeout = 2
+enum_cache_timeout = 3600
+reconnection_retries = 3
+
+#debug_level = 5
+
+[pam] 
+offline_credentials_expiration = 5
+offline_failed_login_attempts = 2
+offline_failed_login_delay = 5
+
+[nss] 
+override_homedir = /home/%u 
+memcache_timeout = 3000
+entry_negative_timeout = 600
+entry_cache_timeout = 1
+filter_users = at,avahi,bin,colord,daemon,dnsmasq,ftp,lp,mail,man,messagebus,news,nm-openvpn,nscd,ntp,openslp,polkitd,postfix,pulse,root,rpc,rtkit,scard,sshd,statd,systemd-bus-proxy,systemd-timesync,tftp,uucp
+
+filter_groups = adm,at,audio,avahi,bin,colord,console,daemon,dialout,disk,gdm,input,kmem,lock,lp,mail,maildrop,man,messagebus,news,nm-openvpn,nscd,ntadmin,ntp,polkitd,postfix,public,pulse,pulse-access,root,rtkit,scard,shadow,sshd,sys,systemd-bus-proxy,systemd-journal,systemd-timesync,tape,tftp,trusted,tty,users,utmp,uucp,video,vnc,vscan,wheel,winbind,www,xok
+filter_users_in_groups = true
+
+#debug_level = 0x0FF0
+
+
+[domain/<REALM>] 
+id_provider = ad 
+auth_provider = ad 
+enumerate = false 
+cache_credentials = true
+case_sensitive = true 
+ldap_user_fullname = displayName 
+account_cache_expiration = 6
+ldap_user_uuid = uidnumber
+ldap_id_mapping = true
+ad_gpo_ignore_unreadable = true 
+ldap_schema = ad
+
+ignore_group_members = true
+ldap_connection_expire_timeout = 30
+
+#debug_level = 9 
+============
+
+
+Detalhes importantes:
+
+* note que as diretivas filter_users e filter_groups contém todos os usuários/grupos de sistema. Isto é opcional e serve apenas para evitar tráfego desnecessário fazendo consultas em registros de usuários que são locais.
+* Para habilitar o debug, basta descomentar as diretivas "debug_level". Serão criados logs em /var/log/sssd com TODO o processo de consulta e validação do servidor.
+
+
+5. Alterar o /etc/nsswitch.conf para apontar para o SSSD:
+
+# sed -i 's@^passwd:.*@passwd: compat sss@g;s@^group:.*@group: compat sss@g' /etc/nsswitch.conf
+
+
+6. reiniciar o SSSD
+# systemctl restart sssd
+
+
+7. Realizar o join
+
+RESULTADO_JOIN=$(echo <SENHA> | net -s <path para smb.conf temporario> ads join -U <usuario com poderes para dar join> -i)
+echo "RC do join: $?"
+
+8. verificar que o ticket foi gerado
+
+# klist -k
+
+9. Verificar que a busca de usuários está funcionando:
+
+# id <USUARIO AD>
+
+
+Configuração de autenticação PAM
+=================================
+
+1. Executar:
+
+# pam-config -a --sss --mkhomedir
+
+Este comando irá acrescentar entradas para o pam_sss e o pam_mkhomedir em /etc/pam.d/common-(auth,session,account,password).
+
+
+2. Teste a autenticação com um login via SSH, ou mesmo com um "su - <USUARIO AD>". Monitore o log do sistema para verificar o resultado. As falhas podem ser analisadas nos logs de debug em /var/log/sssd.
+
+
+
+
+
+
+
+
+
+
+

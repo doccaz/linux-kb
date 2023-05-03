@@ -1,0 +1,18 @@
+
+If this error occurs:
+
+Current sysstat version cannot read the format of this file (0x2171)
+
+
+then convert old sar databases to newer format:
+
+# sadf -c sar/sa26 > sa26-new
+
+
+
+
+Prepare file for SARchart (https://github.com/sargraph/sargraph.github.io):
+
+S_TIME_FORMAT=ISO sar -A -f /var/log/sa/sa02 > /tmp/sa02_HOSTNAME.txt
+
+

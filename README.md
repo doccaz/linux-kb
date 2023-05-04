@@ -1,4 +1,4 @@
-# linux-scripts
+# My unnofficial "knowledge base"
 
 
 This is a mish-mash of scripts and small Linux "recipes" I've collected or wrote myself over the years.

@@ -1,0 +1,82 @@
+
+To see the status of the system: 
+# sestatus
+
+Temporarily enable permissive mode:
+# setenforce 0
+
+Looking for denied eventos:
+# grep -i avc /var/log/audit/audit.log
+# tail -f /var/log/audit/audit.log| grep -i avc
+
+--> if there are no denials in auditd, disable dontaudit rules with "semodule -DB" (which will make all denials to be properly reported)
+
+
+Proper way to search:
+# ausearch -m avc,user_avc,selinux_err -ts boot -i
+# ausearch -m avc,user_avc,selinux_err -ts recent -i
+
+
+Creating rules from audit.log denied events (marked with "AVC"): 
+# grep -i avc /var/log/audit/audit.log | audit2allow
+
+(dangerous! will allow everything denied! please be more specific)
+
+
+See processes security context:
+# ps auxZ
+
+Specific to processes running inside a container:
+- types container_t and container_runtime_t 
+- containers started with --privileged use spc_t
+- categories are used to separate containers (and VMs)
+ 
+   container_t:s0:c146,c225 (categories set to c146 and 225 in this example)
+
+
+Check filesystem labels:
+# ls -laZ <path>
+
+Check user context:
+# id -Z
+
+Check for mislabeled files:
+# restorecon -Rvn /etc
+
+To relabel all files:
+# restorecon -Rv /etc
+
+Automatically relabel everyting on boot:
+touch /etc/selinux/.autorelabel 
+
+(can take a long time during boot)
+
+
+Format: 
+user:role:type:sensitivity
+system_u:object_r:etc_t:s0-s0:c0.c1023
+
+Totally unrestricted context:
+unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+
+Linux users to SELinux users mapping:
+# semanage login -l
+
+Port mapping:
+# semanage port -l
+
+File label rules:
+# semanager fcontext -l
+
+Booleans:
+# semanage boolean -l
+
+Trigger a boolean:
+# semanage boolean -m --on httpd_enable_homedirs
+# semanage boolean -m --off httpd_enable_homedirs
+
+Rescueing a system that won't boot (kernel parameters):
+ - disable SELinux: selinux=0
+ - make SELinux permissive to further debug the issues: enforcing=0
+
+

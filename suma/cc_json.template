@@ -1,0 +1,13 @@
+    {
+        "configChannelType": {
+            "id": __ID__, 
+            "label": "normal", 
+            "name": "A general purpose configuration channel", 
+            "priority": 1
+        }, 
+        "description": "__DESCRIPTION__", 
+        "files": [], 
+        "id": __ID__, 
+        "label": "cc-__PROFILE__", 
+        "name": "cc-__PROFILE__", 
+        "orgId": 1

@@ -1,0 +1,42 @@
+    {
+        "base_channel_label": "none", 
+        "child_channel_labels": [], 
+        "config_channels": [
+            "cc-__PROFILE__"
+        ], 
+        "config_deploy": 1, 
+        "description": "__DESCRIPTION__", 
+        "disabled": false, 
+        "entitlements": [
+            "provisioning_entitled", 
+            "monitoring_entitled"
+        ], 
+        "key": "1-__PROFILE__", 
+        "package_names": [
+            "rhncfg-client", 
+            "rhncfg-actions", 
+            "rhncfg", 
+            "rhnmd",
+	    "osad"
+        ], 
+        "packages": [
+            {
+                "name": "rhncfg-client"
+            }, 
+            {
+                "name": "rhncfg-actions"
+            }, 
+            {
+                "name": "rhncfg"
+            }, 
+            {
+                "name": "rhnmd"
+            },
+            {
+                "name": "osad"
+            }
+        ], 
+        "server_group_ids": [], 
+        "server_groups": [ "perfil-__PROFILE__" ], 
+        "universal_default": false, 
+        "usage_limit": 0

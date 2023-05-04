@@ -1,0 +1,2 @@
+production-machines,All machines from production
+development-machines,All machines from development

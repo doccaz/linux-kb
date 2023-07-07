@@ -1,0 +1,40 @@
+Creating a URL handler with XDG
+
+
+Create a handler script (ex: /usr/local/bin/slack-laucnher.sh):
+
+=========
+#!/bin/bash
+
+echo $1 | tr [:upper:] [:lower:] | xclip -i
+
+=========
+
+
+Create a .desktop file in .local/share/applications (or /usr/share/applications, or /usr/local/share/applications):
+
+slack-launcher.desktop:
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=/usr/local/bin/slack-handler.sh %u
+Icon=com.slack.Slack
+StartupNotify=true
+Terminal=false
+Categories=Utility;X-XFCE;X-Xfce-Toplevel;
+MimeType=x-scheme-handler/slack
+Name=Slack Launcher
+Comment=Launch Slack
+
+
+Set the default mime handler to it:
+
+# xdg-mime default slack-launcher.desktop x-scheme-handler/slack
+
+or add this section to the mimeapps.list in .local/share/applications (or /usr/share/applications, or /usr/local/share/applications):
+
+
+[Added Associations]
+x-scheme-handler/slack=slack-launch.desktop
+

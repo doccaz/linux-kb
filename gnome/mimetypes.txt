@@ -38,3 +38,6 @@ or add this section to the mimeapps.list in either ~/.config/mimeapps.list, ~/.l
 [Added Associations]
 x-scheme-handler/slack=slack-launch.desktop
 
+
+
+Reference: https://specifications.freedesktop.org/mime-apps-spec/mime-apps-spec-latest.html

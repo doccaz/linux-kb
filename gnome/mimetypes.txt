@@ -32,7 +32,7 @@ Set the default mime handler to it:
 
 # xdg-mime default slack-launcher.desktop x-scheme-handler/slack
 
-or add this section to the mimeapps.list in .local/share/applications (or /usr/share/applications, or /usr/local/share/applications):
+or add this section to the mimeapps.list in either ~/.config/mimeapps.list, ~/.local/share/applications (user only) or /usr/share/applications, /usr/local/share/applications, /etc/xdg/mimeapps.list (system-wide):
 
 
 [Added Associations]

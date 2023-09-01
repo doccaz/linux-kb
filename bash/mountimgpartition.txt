@@ -1,0 +1,19 @@
+To mount the partitions inside an .img or .iso file:
+
+$ sudo partx -a -v file.iso
+partition: none, disk: file.iso, lower: 0, upper: 0
+Trying to use '/dev/loop0' for the loop device
+/dev/loop0: partition table type 'dos' detected
+range recount: max partno=1, lower=0, upper=0
+/dev/loop0: partition #1 added
+$ mount /dev/loop0p1 ./mnt
+
+
+To unmount:
+
+$ umount /dev/loop0p1 ./mnt
+$ sudo partx -d -v /dev/loop0
+partition: none, disk: /dev/loop0, lower: 0, upper: 0
+/dev/loop0: partition #1 removed
+
+

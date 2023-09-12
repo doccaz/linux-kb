@@ -1,0 +1,160 @@
+IPv6 Source Address Selection on Linux
+
+Submitted by davidc on Mon, 05/11/2009 - 12:36
+
+Sometimes it is desirable to have the outgoing IPv6 address on an interface selected deterministically. All else being equal, Linux will default to using the latest address added to the interface as the source address. This is generally not what you would expect or want. This article describes how to influence the source address selection under Linux.
+
+Selection algorithm
+Linux implements RFC 3484, "Default Address Selection for Internet Protocol version 6 (IPv6). Briefly, the algorithm involves building a candidate list of potential source addresses, then following these rules in order:
+
+Prefer same address. (i.e. destination is local machine)
+Prefer appropriate scope. (i.e. smallest scope shared with the destination)
+Avoid deprecated addresses.
+Prefer home addresses.
+Prefer outgoing interface. (i.e. prefer an address on the interface we're sending out of)
+Prefer matching label.
+Prefer public addresses.
+Use longest matching prefix.
+"If the eight rules fail to choose a single address, some unspecified tie-breaker should be used." Linux chooses to use the latest address added.
+
+Influencing the algorithm
+It is necessary therefore to break any tie by influencing one of these rules. The solution is to mark unwanted source addresses as "deprecated", causing them to fail rule 3.
+
+The method to implement this under Linux is to set preferred_lft to 0, thus causing the address to be marked as deprecated. Note that deprecation doesn't make the address invalid, so you can still receive packets destined for that address, but it just won't be used as source adddres.
+
+Changing an existing address
+For an address already added to the interface, use ip addr change. See the example below.
+
+root@netman1:~# ip -6 addr show dev eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qlen 1000
+    inet6 2a01:550:8000::11/128 scope global
+       valid_lft forever preferred_lft forever
+    inet6 2a01:550:8000:10a::1/64 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fe80::221:5aff:fe45:9956/64 scope link
+       valid_lft forever preferred_lft forever
+root@netman1:~# lynx -dump 'http://www.ipv6.org/' | grep "You are using"
+                  You are using IPv6 from 2a01:550:8000::11
+root@netman1:~# ip -6 addr change 2a01:550:8000::11/128 dev eth0 preferred_lft 0
+root@netman1:~# ip -6 addr show dev eth0
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qlen 1000
+    inet6 2a01:550:8000::11/128 scope global deprecated
+       valid_lft forever preferred_lft forever
+    inet6 2a01:550:8000:10a::1/64 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fe80::221:5aff:fe45:9956/64 scope link
+       valid_lft forever preferred_lft forever
+root@netman1:~# lynx -dump 'http://www.ipv6.org/' | grep "You are using"
+                You are using IPv6 from 2a01:550:8000:10a::1
+root@netman1:~#
+Adding a new address
+Simply set preferred_lft when adding your address, e.g.:
+
+ip addr add 2a01:550:8000::11 dev eth0 preferred_lft 0
+Example use in Debian interfaces file:
+
+iface eth0 inet6 static
+        address 2a01:550:8000:10a::1
+        netmask 64
+        gateway 2a01:550:8000:10a::ff
+        up ip addr add 2a01:550:8000::11 dev eth0 preferred_lft 0
+Example in Gentoo configuration file:
+
+ config_eth0=(
+       "10.1.1.1/24" "2001:0db8::1/64"
+       "10.1.1.2/24" "2001:0db8::2/64 preferred 0"
+ )
+Credit
+This page is based on a mailing list post by Chris Caputo to ipv6-ops:
+
+from: Chris Caputo
+to: ipv6-ops
+date: 29 April 2009 05:08
+subject: linux source address selection solution
+ 
+Here's a little linux tip.  Hopefully it is of use to others.  Apologies
+if obvious.
+ 
+Recent linux kernels follow RFC 3484 "Default Address Selection for
+Internet Protocol version 6 (IPv6)".
+ 
+In the case of a tie (ie., source address not decided by destination
+subnet or other mechanisms), if you have multiple IPv6 addresses on an
+interface, linux tends to use the last address added.
+ 
+I prefer to have my source v6 address not be dependent on addition order,
+but rather be more deterministic.
+ 
+A way to do so is to set "preferred_lft" to zero, while "valid_lft" is
+non-zero or "forever".  Doing so results in the source address being
+marked as deprecated, which means it won't be used if there are
+alternatives on the interface, or a loopback address if not.
+ 
+Loopback address is great for routers connected to exchange points because
+it means you can deprecate your v6 exchange point address on the physical
+interface and use a loopback as the source for any v6 connections.  (no
+more broken registry queries due to unrouted exchange point address
+space!)
+ 
+To experiment with this try on addresses you don't want to be selected as
+a source:
+ 
+ ip addr change <ADDR> dev <DEV> preferred_lft 0
+ 
+"ip -6 addr" should now show the address as being deprecated and
+non-deprecated address(es) will be favored.  To revert do "preferred_lft
+forever" instead.
+ 
+On Gentoo I found that the network startup scripts did not like the "_lft"
+in "preferred_lft".  Fortunately "ip addr add" allows you to drop that and
+just use "preferred 0", ala:
+ 
+ config_eth0=(
+       "10.1.1.1/24" "2001:0db8::1/64"
+       "10.1.1.2/24" "2001:0db8::2/64 preferred 0"
+ )
+ 
+Cheers,
+Chris
+owendelong
+
+Sun, 07/29/2018 - 19:31
+
+Permalink
+
+For those using Fedora and derivatives...
+I didn't find a good supported way to do this on Fedora (pretty sure there isn't one).
+
+I did write the following script as an /sbin/ifup-local which provides what I believe to be a relatively clean solution.
+/sbin/ifup-local is automatically called at the end of the ifup-aliases and ifup-post if it exists.
+
+This file does not exist on the system by default.
+
+#!/bin/bash
+#
+# Reset IPv6 preferred_lft for undesired source addresses
+#
+iface=$1
+ 
+# Put any addresses you don't want deprecated in this list.
+SOURCES="\
+        2001:db8::2/64\
+        2001:db8:f3c0::5/64\
+"
+ 
+ADDRS=`ip addr show | grep inet6 | grep global | sed -e 's/.*inet6 //' -e 's/\(\/[0-9][0-9]*\).*$/\1/'`
+for i in $ADDRS; do
+  for j in $SOURCES; do
+#    echo "comparing \"$i\" to \"$j\""
+    if [ $i = $j ]; then
+      continue 2; # Next $i
+    fi
+  done
+  echo "Setting preferred lifetime on $iface for $i to 0"
+  ip addr change $i dev $iface preferred_lft 0
+done
+In my application, I thought it was easier to specify the preferred source addresses and let everything else become deprecated by default. That way, if addresses are added, they don't default to being a source address accidentally.
+
+Any number (memory permitting) of preferred sources can be listed.
+
+

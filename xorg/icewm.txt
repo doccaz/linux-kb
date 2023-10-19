@@ -1,0 +1,52 @@
+With help from the IceWM devs to come up with the string, this will make it easy to add or update an override window geometry for any particular program.
+
+This is usable for those able to edit the IceWM keys file, because you need to add a hotkey to make it work. I assigned it to Win+R for Remember Window.
+
+key "Super+r" /bin/sh -c "$HOME/add_geo_entry"
+
+It runs a little script called $HOME/add_geo_entry. The way its setup at the moment it needs to be in your home directory to work, and has to be executable. I will try to paste the script here if the website will allow it, but it needs to be saved as add_geo_entry and made executable to work. Let me know if you have any problems, comments or possible improvements. This is a first try, and no, there is no way I would have figured out the first bunch of lines myself. LOL, I assembled the easy stuff at the end…
+
+Life is a learning experience everyday, but if we put in a little effort, maybe tomorrow will be a little better.
+
+------------------------
+#!/bin/bash
+# add geometry entry for active window to winoptions
+set -- $(icesh -f getGeometry prop _NET_FRAME_EXTENTS prop WM_CLASS | tr '+,' '  ')
+geo=$1
+x=$2
+y=$3
+left=$7
+top=$9
+class=${14}
+let x-=$left
+let y-=$top
+# locate winoptions
+if [[ -d $ICEWM_PRIVCFG ]]
+then
+    winoptions=$ICEWM_PRIVCFG/winoptions
+elif [[ -d $XDG_CONFIG_HOME && -d $XDG_CONFIG_HOME/icewm ]]
+then
+    winoptions=$XDG_CONFIG_HOME/icewm/winoptions
+elif [[ -d $HOME/.config/icewm ]]
+then
+    winoptions=$HOME/.config/icewm/winoptions
+elif [[ -d $HOME/.icewm ]]
+then
+    winoptions=$HOME/.icewm/winoptions
+else
+    echo "$0: Cannot find your icewm config directory" >&2
+    exit 1
+fi
+cls_geo="${class}geometry"
+newline="${cls_geo}: ${geo}+${x}+${y}"
+# delete previous 
+sed -i -e "/$cls_geo/d" "$winoptions"
+# add new
+echo "$newline" >> "$winoptions"
+# is there a need to restart icewm?
+# icewm -r
+# reload winoptions
+icesh winoptions
+
+
+

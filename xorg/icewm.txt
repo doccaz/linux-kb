@@ -1,3 +1,6 @@
+Reference: https://www.antixforum.com/forums/topic/hotkey-to-remember-window-size-and-position-for-icewm/
+====================
+
 With help from the IceWM devs to come up with the string, this will make it easy to add or update an override window geometry for any particular program.
 
 This is usable for those able to edit the IceWM keys file, because you need to add a hotkey to make it work. I assigned it to Win+R for Remember Window.

@@ -1,0 +1,17 @@
+Add this to /etc/bash.bashrc.local:
+
+export HISTTIMEFORMAT="%Y-%m-%d %T "
+export PROMPT_COMMAND='trap "" 1 2 15; history -a >(tee -a ~/.bash_history | while read line; do if [[ $line =~ ^#[0-9]*$ ]]; then continue; fi; logger -p user.info -t "bash[$$]" "($USER:$(logname): $line)"; done); trap - 1 2 15'
+
+
+
+And then it will log *everything* that was ran inside the SU session:
+
+nov 13 15:01:49 pxl1aub00046 sudo[31870]:    erico : TTY=pts/0 ; PWD=/home/erico ; USER=root ; COMMAND=/usr/bin/su -
+nov 13 15:01:49 pxl1aub00046 su[31871]: (to root) root on pts/0
+nov 13 15:01:51 pxl1aub00046 bash[31936]: (root:erico: ls)
+nov 13 15:02:00 pxl1aub00046 bash[32258]: (root:erico: journalctl -xe -f)
+nov 13 15:02:28 pxl1aub00046 bash[33513]: (root:erico: hello there)
+nov 13 15:02:42 pxl1aub00046 bash[34168]: (root:erico: you can see who and what was ran inside the shell)
+nov 13 15:02:52 pxl1aub00046 sudo[34578]:    erico : TTY=pts/0 ; PWD=/home/erico ; USER=root ; COMMAND=/usr/bin/journalctl -xe -f
+

@@ -1,0 +1,20 @@
+Below command can be used to list approximate count of sockets opened for dbus system daemon
+
+
+lsof -u messagebus | grep -i socket | wc -l
+
+
+(note: RHEL uses "dbus" as the dbus user instead of "messagebus")
+
+
+dbus-send query can be used to list responsible processes
+
+Command to list clients:
+
+dbus-send --system --print-reply --dest=org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus.ListNames
+
+
+Use below to get associated PID:
+
+dbus-send --system --print-reply --dest=org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus.GetConnectionUnixProcessID 'string::1.10'
+

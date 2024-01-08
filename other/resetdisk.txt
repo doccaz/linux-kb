@@ -1,0 +1,24 @@
+There are times when devices fail, or lock up.
+
+In some of those cases it could be a SATA hard disk locking up (perhaps it is developing bad blocks, perhaps it just had a power failure due to a bad connector and got left in an undefined state).
+
+Thankfully, Linux offers you vast control over the hardware.
+
+To reset a SATA device, start by figuring out which logical port the drive is connected to:
+
+# readlink /sys/block/sdX
+../devices/pci0000:00/0000:00:1f.2/host1/target1:0:0/1:0:0:0/block/sr0
+
+Force disconnect the device:
+
+# echo 1 > /sys/block/sdX/device/delete
+
+Notice the host1 in the returned line above. That’s the controller that needs rescanned.
+Trigger rescan:
+
+# echo "- - -" > /sys/class/scsi_host/host1/scan
+
+This should do it. If the device is still alive, it should return to working condition.
+
+You can monitor dmesg for status information.
+

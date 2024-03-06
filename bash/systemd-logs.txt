@@ -1,0 +1,21 @@
+1. Create this file and add the content:
+/usr/lib/systemd/system-shutdown/debug.sh
+
+#!/bin/sh
+mount -o remount,rw /
+dmesg -T > /shutdown-log.txt
+mount -o remount,ro /
+
+Change it to executable:
+chmod +x /usr/lib/systemd/system-shutdown/debug.sh
+
+2. Edit: /etc/default/grub
+Add these entries:
+GRUB_CMDLINE_LINUX="systemd.log_level=debug systemd.log_target=kmsg
+log_buf_len=1M printk.devkmsg=on enforcing=0"
+
+Recreate the grub file:
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+3. Reboot
+

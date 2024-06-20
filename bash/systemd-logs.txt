@@ -19,3 +19,6 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 3. Reboot
 
+
+More info: https://freedesktop.org/wiki/Software/systemd/Debugging/
+

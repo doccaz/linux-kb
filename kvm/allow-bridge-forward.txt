@@ -1,0 +1,26 @@
+In recent kernels, the default FORWARD chain action is DROP.
+
+The effects seen on KVM:
+- guest to guest communication is no longer possible even with ip_forward set to 1 on sysctl (guest to host works though)
+- guest to internet communication is blocked.
+
+
+To fix:
+
+Set these parameters in sysctl:
+
+
+# needed to allow guest to guest communication in KVM
+net.bridge.bridge-nf-call-ip6tables = 0
+net.bridge.bridge-nf-call-iptables = 0
+net.bridge.bridge-nf-call-arptables = 0
+
+and add a FORWARD rule for your bridge interface:
+
+# firewall-cmd --permanent --direct --passthrough ipv4 -I FORWARD -i virbr-suse -j ACCEPT
+# firewall-cmd --permanent --direct --passthrough ipv4 -I FORWARD -o virbr-suse -j ACCEPT
+# firewall-cmd --reload
+
+
+where 'virbr-suse' is the name of your bridge interface.
+

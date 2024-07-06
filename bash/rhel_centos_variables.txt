@@ -1,0 +1,55 @@
+RHEL/CentOS 8:
+
+/usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+RHEL/CentOS 6 and 7
+
+python -c 'import yum, json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
+RHEL/CentOS 4 and 5
+
+# if you install python-simplejson
+python -c 'import yum, simplejson as json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
+
+# otherwise
+python -c 'import yum, pprint; yb = yum.YumBase(); pprint.pprint(yb.conf.yumvar, width=1)'
+
+Example output:
+
+# CentOS 8:
+# ---
+[root@0928d3917e32 /]# /usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+Failed to set locale, defaulting to C
+{
+  "arch": "x86_64",
+  "basearch": "x86_64",
+  "releasever": "8"
+}
+[root@0928d3917e32 /]# 
+
+
+# CentOS 7:
+# ---
+[root@c41adb7f40c2 /]# python -c 'import yum, json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
+Loaded plugins: fastestmirror, ovl
+{
+  "uuid": "cb5f5f60-d45c-4270-8c36-a4e64d2dece4", 
+  "contentdir": "centos", 
+  "basearch": "x86_64", 
+  "infra": "container", 
+  "releasever": "7", 
+  "arch": "ia32e"
+}
+[root@c41adb7f40c2 /]# 
+
+# CentOS 6:
+# ---
+[root@bfd11c9a0880 /]# python -c 'import yum, json; yb = yum.YumBase(); print json.dumps(yb.conf.yumvar, indent=2)'
+Loaded plugins: fastestmirror, ovl
+{
+  "releasever": "6", 
+  "basearch": "x86_64", 
+  "arch": "ia32e", 
+  "uuid": "3e0273f1-f5b6-481b-987c-b5f21dde4310", 
+  "infra": "container"
+}
+[root@bfd11c9a0880 /]# 
+

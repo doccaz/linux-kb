@@ -1,0 +1,17 @@
+Turn off suspend for the laptop when closing the lid + console blanking
+
+# systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
+# vi /etc/systemd/logind.conf.d/99-ignore-lid.conf
+
+[Login]
+HandleLidSwitch=ignore
+HandleLidSwitchExternalPower=ignore
+
+# systemctl restart systemd-logind
+# grub2-editenv /oem/grubenv set third_party_kernel_args="consoleblank=60"
+
+to check:
+
+cat /sys/module/kernel/parameters/consoleblank
+
+

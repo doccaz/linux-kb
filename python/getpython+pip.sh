@@ -68,7 +68,7 @@ ${PDIR}/bin/python${CUTVER} get-pip.py
 # ${PDIR}/bin/python${CUTVER} -m pip install --upgrade pip
 
 echo "Instalando módulo virtualenv dentro de ${PDIR}..."
-${PDIR}/bin/pip3 install virtualenv --global http.sslVerify false
+${PDIR}/bin/pip3 install virtualenv --global http.sslVerify=false
 
 echo "Criando virtualenv em ${VENVDIR}..."
 ${PDIR}/bin/virtualenv ${VENVDIR}
